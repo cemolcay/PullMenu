@@ -13,6 +13,8 @@
 		B23898901A516CA900C08E26 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B238988F1A516CA900C08E26 /* Images.xcassets */; };
 		B23898931A516CA900C08E26 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = B23898911A516CA900C08E26 /* LaunchScreen.xib */; };
 		B238989F1A516CA900C08E26 /* PullMenuTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B238989E1A516CA900C08E26 /* PullMenuTests.swift */; };
+		B23898AB1A516CCD00C08E26 /* PullMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = B23898AA1A516CCD00C08E26 /* PullMenu.swift */; };
+		B23898AD1A51707600C08E26 /* CEMKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = B23898AC1A51707600C08E26 /* CEMKit.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +38,8 @@
 		B23898981A516CA900C08E26 /* PullMenuTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PullMenuTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B238989D1A516CA900C08E26 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B238989E1A516CA900C08E26 /* PullMenuTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullMenuTests.swift; sourceTree = "<group>"; };
+		B23898AA1A516CCD00C08E26 /* PullMenu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PullMenu.swift; sourceTree = "<group>"; };
+		B23898AC1A51707600C08E26 /* CEMKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CEMKit.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,12 +81,14 @@
 		B23898851A516CA900C08E26 /* PullMenu */ = {
 			isa = PBXGroup;
 			children = (
+				B23898AC1A51707600C08E26 /* CEMKit.swift */,
 				B23898881A516CA900C08E26 /* AppDelegate.swift */,
 				B238988A1A516CA900C08E26 /* ViewController.swift */,
 				B238988C1A516CA900C08E26 /* Main.storyboard */,
 				B238988F1A516CA900C08E26 /* Images.xcassets */,
 				B23898911A516CA900C08E26 /* LaunchScreen.xib */,
 				B23898861A516CA900C08E26 /* Supporting Files */,
+				B23898AA1A516CCD00C08E26 /* PullMenu.swift */,
 			);
 			path = PullMenu;
 			sourceTree = "<group>";
@@ -212,7 +218,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B23898AD1A51707600C08E26 /* CEMKit.swift in Sources */,
 				B238988B1A516CA900C08E26 /* ViewController.swift in Sources */,
+				B23898AB1A516CCD00C08E26 /* PullMenu.swift in Sources */,
 				B23898891A516CA900C08E26 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -339,6 +347,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = PullMenu/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -349,6 +358,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = PullMenu/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

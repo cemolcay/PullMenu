@@ -10,9 +10,13 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    @IBOutlet var scrollView: UIScrollView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        
+        scrollView.addPullMenu(["Menu", "Detail", "Promotions", "Favorites"])
+        scrollView.contentSize = CGSize (width: view.w, height: view.h + 1.0)
     }
 
     override func didReceiveMemoryWarning() {
