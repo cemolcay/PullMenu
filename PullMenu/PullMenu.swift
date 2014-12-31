@@ -12,9 +12,9 @@ private var PullMenuAssosiatedObject: UInt8 = 0
 
 extension UIScrollView {
 
-    var pullMenu: PullMenu {
+    var pullMenu: PullMenu? {
         get {
-            return objc_getAssociatedObject(self, &PullMenuAssosiatedObject) as PullMenu
+            return objc_getAssociatedObject(self, &PullMenuAssosiatedObject) as? PullMenu
         } set (value) {
             objc_setAssociatedObject(self, &PullMenuAssosiatedObject, value, UInt(OBJC_ASSOCIATION_RETAIN_NONATOMIC))
         }
@@ -23,16 +23,16 @@ extension UIScrollView {
     func addPullMenu (items: [String]) {
         let height: CGFloat = 60
         
-        let pull = PullMenu (frame: CGRect (x: 0, y: -height, width: self.w, height: height), items: items)
-        pull.scrollView = self
-        self.addSubview(pull)
+        self.pullMenu = PullMenu (frame: CGRect (x: 0, y: -height, width: self.w, height: height), items: items)
+        self.pullMenu!.scrollView = self
+        self.addSubview(self.pullMenu!)
     }
 }
 
 
 class PullMenuLabel: UILabel {
     
-    var opened: Bool = false
+    var selected: Bool = false
     var animation: ((CGFloat)->())?
     
     var progress: CGFloat = 0 {
@@ -66,6 +66,17 @@ struct PullMenuAppearance {
         
         self.textColor = textColor
         self.selectedTextColor = textColor
+        
+        self.textAlignment = .Center
+        self.selectedTextAlignment = .Center
+    }
+    
+    init (font: UIFont, selectedFont: UIFont, textColor: UIColor, selectedTextColor: UIColor) {
+        self.font = font
+        self.selectedFont = selectedFont
+        
+        self.textColor = textColor
+        self.selectedTextColor = selectedTextColor
         
         self.textAlignment = .Center
         self.selectedTextAlignment = .Center
@@ -119,7 +130,6 @@ class PullMenu: UIView, UIScrollViewDelegate {
     init (frame: CGRect, items: [String]) {
         appeareance = PullMenuAppearance (font: UIFont.systemFontOfSize(15), textColor: UIColor.blackColor())
         super.init(frame: frame)
-//        backgroundColor = UIColor.yellowColor()
         
         for item in items {
             addItem(item)
@@ -137,13 +147,7 @@ class PullMenu: UIView, UIScrollViewDelegate {
     
     func labelFromString (string: String) -> PullMenuLabel {
         let lbl = PullMenuLabel (frame: CGRect (x: lastX, y: 0, width: 10, height: h))
-        
-        updateAppeareance(lbl)
         lbl.text = string
-        lbl.sizeToFit()
-        lbl.h = h
-        
-        lastX += padX + lbl.w
         
         return lbl
     }
@@ -167,10 +171,25 @@ class PullMenu: UIView, UIScrollViewDelegate {
     }
 
     
-    func updateAppeareance (label: UILabel) {
-        label.font = appeareance.font
-        label.textColor = appeareance.textColor
-        label.textAlignment = appeareance.textAlignment
+    func updateAppeareance (label: PullMenuLabel) {
+        
+        let font = label.selected ?
+            appeareance.selectedFont:appeareance.font
+        
+        let textColor = label.selected ?
+            appeareance.selectedTextColor:appeareance.textColor
+        
+        let align = label.selected ?
+            appeareance.selectedTextAlignment:appeareance.textAlignment
+        
+        label.font = font
+        label.textColor = textColor
+        label.textAlignment = align
+        
+        label.sizeToFit()
+        label.h = h
+        
+        calculateLabelWidths()
     }
     
     
@@ -180,9 +199,9 @@ class PullMenu: UIView, UIScrollViewDelegate {
     func addItem (item: String) {
         let label = labelFromString(item)
         addSubview(label)
-        self.items.append(label)
         
-        calculateLabelWidths()
+        self.items.append(label)
+        updateAppeareance(label)
     }
     
     
@@ -220,14 +239,26 @@ class PullMenu: UIView, UIScrollViewDelegate {
                     let progress: CGFloat = (o-p*i)/p
                     
                     item.progress = progress
+                    
+                    if !item.selected {
+                        item.selected = true
+                        updateAppeareance(item)
+                    }
+                    
                 } else {
                     item.progress = 0
+                    
+                    if item.selected {
+                        item.selected = false
+                        updateAppeareance(item)
+                    }
                 }
             }
         }
     }
     
-    func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    func scrollViewDidEndDragging(scrollView: UIScrollView,
+        willDecelerate decelerate: Bool) {
         let offsetY = scrollView.contentOffset.y
         let insetTop = scrollView.contentInset.top
         let offset = offsetY + insetTop + pullStartOffset
