@@ -12,20 +12,40 @@ class ViewController: UIViewController {
 
     @IBOutlet var scrollView: UIScrollView!
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    override func viewDidLayoutSubviews() {
         
-        scrollView.addPullMenu(["Menu", "Detail", "Promotions", "Favorites"])
-        scrollView.contentSize = CGSize (width: view.w, height: view.h + 1.0)
+        let items = ["Menu", "Detail", "Promotions", "Favorites"]
         
-        let appeareance = PullMenuAppearance (font: UIFont.Font(.Avenir, type: .Book, size: 15), selectedFont: UIFont.HelveticaNeue(.Thin, size: 20), textColor: UIColor.redColor(), selectedTextColor: UIColor.blueColor())
+        scrollView.addPullMenu(items)
+        
+        let appeareance = PullMenuAppearance (
+            font: UIFont.Font(.Avenir, type: .Book, size: 15),
+            selectedFont: UIFont.Font(.Avenir, type: .Roman, size: 20),
+            textColor: UIColor.redColor(),
+            selectedTextColor: UIColor.blueColor())
         
         scrollView.pullMenu?.appeareance = appeareance
+        
+        scrollView.pullMenu?.itemSelectedAction = { selectedIndex in
+            println("item selected at index \(selectedIndex)")
+            self.title = items[selectedIndex]
+        }
+        
+        addItems()
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    
+    func addItems () {
+        var contentH: CGFloat = 10
+        for i in 0...20 {
+            let lbl = UILabel (x: 10, y: contentH, w: ScreenWidth-20, h: 100)
+            lbl.backgroundColor = randomColor()
+            lbl.text = "item \(i)"
+            lbl.textAlignment = .Center
+            
+            contentH += lbl.h + 10
+            scrollView.addSubview(lbl)
+        }
+        
+        scrollView.contentSize = CGSize (width: scrollView.w, height: contentH)
     }
 }
-
