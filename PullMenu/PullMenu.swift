@@ -44,15 +44,15 @@ class PullMenuLabel: UILabel {
     
     var progress: CGFloat = 0 {
         didSet {
+//            animation?(progress)
             progressAnimation(progress)
         }
     }
     
     func progressAnimation (progress: CGFloat) {
         let s = convertNormalizedValue(progress, 0.1, 1.2)
-
         self.alpha = s
-        //self.setScale(s, y: s)
+//        self.setScale(s, y: s)
     }
 }
 
@@ -118,30 +118,16 @@ class PullMenu: UIView, UIScrollViewDelegate {
     }
     
     
-    private var stickMode: Bool = false {
-        didSet {
-            if stickMode {
-                scrollView.contentInset = UIEdgeInsets (top: scrollView.contentInset.top + h, left: 0, bottom: 0, right: 0)
-            } else {
-                scrollView.contentInset = UIEdgeInsets (top: scrollView.contentInset.top - h, left: 0, bottom: 0, right: 0)
-            }
-        }
-    }
-    
-    private var timer: NSTimer? = nil
-    
     var itemSelectedAction: ((index: Int)->())?
 
-    
-    // Label placement
-    var lastX: CGFloat = 0
-    var padX: CGFloat = 10
-    
+
     
     // Pulling constants
+    
     var pullStartOffset: CGFloat = 60
     
     var maxPullHeight: CGFloat?
+    
     var pullForEachItem: CGFloat = 20
     
     
@@ -176,33 +162,36 @@ class PullMenu: UIView, UIScrollViewDelegate {
     
     
     
+    // MARK: Add
+    
+    func addItem (item: String) {
+        let label = labelFromString(item)
+        label.tag = items.count
+        addSubview(label)
+        
+        items.append(label)
+        updateAppeareance(label)
+    }
+    
+    
+    
+    // MARK: Remove
+    
+    func removeItem (atIndex: Int) {
+        
+    }
+    
+    
+    
     // MARK: Label
     
     func labelFromString (string: String) -> PullMenuLabel {
-        let lbl = PullMenuLabel (frame: CGRect (x: lastX, y: 0, width: 10, height: h))
+        let lbl = PullMenuLabel (frame: CGRect (x: 0, y: 0, width: 10, height: h))
         lbl.text = string
         
         return lbl
     }
     
-    func calculateLabelWidths () {
-        
-        var totalW: CGFloat = 0
-        
-        for item in items {
-            totalW += item.w
-        }
-        
-        let optimizedPad = (ScreenWidth - totalW) / CGFloat (items.count + 1)
-        var currentX: CGFloat = optimizedPad
-    
-        
-        for item in items {
-            item.x = currentX
-            currentX += item.w + optimizedPad
-        }
-    }
-
     func updateAppeareance (label: PullMenuLabel) {
         
         let font = label.selected ?
@@ -224,62 +213,36 @@ class PullMenu: UIView, UIScrollViewDelegate {
         calculateLabelWidths()
     }
     
-    
-    // MARK: Add
-    
-    func addItem (item: String) {
-        let label = labelFromString(item)
-        label.addTapGesture(1, target: self, action: "labelTapped:")
-        label.tag = items.count
-        addSubview(label)
+    func calculateLabelWidths () {
         
-        items.append(label)
-        updateAppeareance(label)
-    }
-    
-    
-    
-    // MARK: Remove
-    
-    func removeItem (atIndex: Int) {
+        var totalW: CGFloat = 0
         
-    }
-
-    
-
-    // MARK: Selection
-    
-    func labelTapped (tap: UITapGestureRecognizer) {
-        if stickMode {
-            let index = tap.view!.tag
-            
-            for i in 0..<items.count {
-                updateAppeareance(items[i])
-            }
+        for item in items {
+            totalW += item.w
+        }
+        
+        let optimizedPad = (ScreenWidth - totalW) / CGFloat (items.count + 1)
+        var currentX: CGFloat = optimizedPad
+        
+        
+        for item in items {
+            item.x = currentX
+            currentX += item.w + optimizedPad
         }
     }
-
-
     
-    // MARK: UIScrollViewDelegate
     
-    func scrollViewDidScroll(scrollView: UIScrollView) {
-        
+    // MARK: Pulling
+    
+    func pullMenu () {
         let offsetY = scrollView.contentOffset.y
         let insetTop = scrollView.contentInset.top
         var offset = offsetY + insetTop + pullStartOffset
-
-        
-        if stickMode {
-            offset += -h
-        }
         
         if offset < 0 {
-        
-            if stickMode {
-                return
-            }
-
+            
+            moveToCenter(offset)
+            
             let count = items.count
             let currentIndex = Int(-offset/pullForEachItem)
             
@@ -313,63 +276,24 @@ class PullMenu: UIView, UIScrollViewDelegate {
             }
         } else {
             bottom = -scrollView.contentOffset.y
-            
-            if stickMode {
-                if bottom <= -h {
-                    println("false")
-                    self.stickMode = false
-                }
-            }
         }
+    }
+    
+    func moveToCenter (offset: CGFloat) {
+        center.y = scrollView.contentInset.top + -offset/2 + pullStartOffset/2
+    }
+    
+    
+    
+    // MARK: UIScrollViewDelegate
+    
+    func scrollViewDidScroll(scrollView: UIScrollView) {
+        pullMenu()
     }
     
     func scrollViewDidEndDragging(scrollView: UIScrollView,
         willDecelerate decelerate: Bool) {
-            
-        if stickMode {
-            return
-        }
-        
-        let offsetY = scrollView.contentOffset.y
-        let insetTop = scrollView.contentInset.top
-        let offset = offsetY + insetTop + pullStartOffset
-        
-        if offset < 0 {
-            
-            let count = items.count
-            var currentIndex = Int(-offset/pullForEachItem)
-            
-            if currentIndex >= items.count {
-                currentIndex = items.count-1
-            }
-            
-            for i in 0..<items.count {
-                let item = items[i]
-                if i == currentIndex {
-                    let o: CGFloat = -offset
-                    let p: CGFloat = pullForEachItem
-                    let i: CGFloat = CGFloat (currentIndex)
-                    let progress: CGFloat = (o-p*i)/p
-                    
-                    item.progress = progress
-                    
-                    if !item.selected {
-                        item.selected = true
-                        updateAppeareance(item)
-                    }
-                    
-                } else {
-                    item.progress = 0
-                    
-                    if item.selected {
-                        item.selected = false
-                        updateAppeareance(item)
-                    }
-                }
-            }
-            
-            itemSelectedAction? (index: currentIndex)
-            stickMode = true
-        }
+        pullMenu()
     }
+
 }

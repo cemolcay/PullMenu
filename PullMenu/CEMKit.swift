@@ -9,6 +9,8 @@
 import Foundation
 import UIKit
 
+
+
 // MARK: - AppDelegate
 
 let APPDELEGATE: AppDelegate = UIApplication.sharedApplication().delegate as AppDelegate
@@ -69,23 +71,6 @@ extension UIView {
     }
     
     
-    var position: CGPoint {
-        get {
-            return self.frame.origin
-        } set (value) {
-            self.frame = CGRect (origin: value, size: self.frame.size)
-        }
-    }
-    
-    var size: CGSize {
-        get {
-            return self.frame.size
-        } set (value) {
-            self.frame = CGRect (origin: self.frame.origin, size: size)
-        }
-    }
-    
-    
     var left: CGFloat {
         get {
             return self.x
@@ -119,6 +104,23 @@ extension UIView {
     }
     
     
+    var position: CGPoint {
+        get {
+            return self.frame.origin
+        } set (value) {
+            self.frame = CGRect (origin: value, size: self.frame.size)
+        }
+    }
+    
+    var size: CGSize {
+        get {
+            return self.frame.size
+        } set (value) {
+            self.frame = CGRect (origin: self.frame.origin, size: size)
+        }
+    }
+    
+
     func leftWithOffset (offset: CGFloat) -> CGFloat {
         return self.left - offset
     }
@@ -176,13 +178,15 @@ extension UIView {
     }
     
     
-    func setScale (x: CGFloat, y: CGFloat) {
+    func setScale (x: CGFloat,
+        y: CGFloat) {
         var transform = CATransform3DIdentity
         transform.m34 = 1.0 / -1000.0
         transform = CATransform3DScale(transform, x, y, 1)
         
         self.layer.transform = transform
     }
+    
     
     
     // MARK: Anchor Extensions
@@ -295,7 +299,6 @@ extension UIView {
         target: AnyObject, action: Selector) {
         let tap = UITapGestureRecognizer (target: target, action: action)
         tap.numberOfTapsRequired = tapNumber
-        self.userInteractionEnabled = true
         self.addGestureRecognizer(tap)
     }
     
@@ -350,6 +353,7 @@ extension UIViewController {
         }
     }
     
+    
     var navigationBarHeight: CGFloat {
         get {
             if let nav = self.navigationController {
@@ -360,10 +364,114 @@ extension UIViewController {
         }
     }
     
+    var navigationBarColor: UIColor? {
+        get {
+            return navigationController?.navigationBar.tintColor
+        } set (value) {
+            navigationController?.navigationBar.barTintColor = value
+        }
+    }
+
+    
     var applicationFrame: CGRect {
         get {
             return CGRect (x: view.x, y: top, width: view.w, height: bottom - top)
         }
+    }
+}
+
+
+
+// MARK: - UILabel
+
+private var UILabelAttributedStringArray: UInt8 = 0
+extension UILabel {
+    
+    var attributedStrings: [NSAttributedString]? {
+        get {
+            return objc_getAssociatedObject(self, &UILabelAttributedStringArray) as? [NSAttributedString]
+        } set (value) {
+            objc_setAssociatedObject(self, &UILabelAttributedStringArray, value, UInt(OBJC_ASSOCIATION_RETAIN_NONATOMIC))
+        }
+    }
+    
+    func addAttributedString (text: String,
+        color: UIColor,
+        font: UIFont) {
+        var att = NSAttributedString (string: text,
+            attributes: [NSFontAttributeName: font,
+                NSForegroundColorAttributeName: color])
+        self.addAttributedString(att)
+    }
+    
+    func addAttributedString (attributedString: NSAttributedString) {
+        var att: NSMutableAttributedString?
+        
+        if let a = self.attributedText {
+            att = NSMutableAttributedString (attributedString: a)
+            att?.appendAttributedString(attributedString)
+        } else {
+            att = NSMutableAttributedString (attributedString: attributedString)
+            attributedStrings = []
+        }
+        
+        attributedStrings?.append(attributedString)
+        self.attributedText = NSAttributedString (attributedString: att!)
+    }
+    
+    
+    func updateAttributedStringAtIndex (index: Int,
+        attributedString: NSAttributedString) {
+        
+        if let att = attributedStrings?[index] {
+            attributedStrings?.removeAtIndex(index)
+            attributedStrings?.insert(attributedString, atIndex: index)
+            
+            let updated = NSMutableAttributedString ()
+            for att in attributedStrings! {
+                updated.appendAttributedString(att)
+            }
+            
+            self.attributedText = NSAttributedString (attributedString: updated)
+        }
+    }
+    
+    func updateAttributedStringAtIndex (index: Int,
+        newText: String) {
+        if let att = attributedStrings?[index] {
+            let newAtt = NSMutableAttributedString (string: newText)
+            
+            att.enumerateAttributesInRange(NSMakeRange(0, countElements(att.string)-1),
+                options: NSAttributedStringEnumerationOptions.LongestEffectiveRangeNotRequired,
+                usingBlock: { (attribute, range, stop) -> Void in
+                    for (key, value) in attribute {
+                        newAtt.addAttribute(key as String, value: value, range: range)
+                    }
+            })
+            
+            updateAttributedStringAtIndex(index, attributedString: newAtt)
+        }
+    }
+    
+    
+    func getEstimatedHeight () -> CGFloat {
+        let att = NSAttributedString (string: self.text!, attributes: NSDictionary (object: font, forKey: NSFontAttributeName))
+        let rect = att.boundingRectWithSize(CGSize (width: w, height: CGFloat.max), options: NSStringDrawingOptions.UsesLineFragmentOrigin, context: nil)
+        return rect.height
+    }
+    
+    func fitHeight () {
+        self.h = getEstimatedHeight()
+    }
+}
+
+
+
+// MARK: - String
+
+extension String {
+    subscript (i: Int) -> String {
+        return String(Array(self)[i])
     }
 }
 
@@ -420,6 +528,72 @@ extension UIFont {
     
     class func HelveticaNeue (type: FontType, size: CGFloat) -> UIFont {
         return Font(.HelveticaNeue, type: type, size: size)
+    }
+}
+
+
+
+// MARK: - UIColor
+
+extension UIColor {
+    
+    class func randomColor () -> UIColor {
+        var randomRed:CGFloat = CGFloat(drand48())
+        var randomGreen:CGFloat = CGFloat(drand48())
+        var randomBlue:CGFloat = CGFloat(drand48())
+        
+        return UIColor(red: randomRed, green: randomGreen, blue: randomBlue, alpha: 1.0)
+    }
+    
+    class func RGBColor (r: CGFloat,
+        g: CGFloat,
+        b: CGFloat) -> UIColor {
+            return UIColor (red: r / 255.0, green: g / 255.0, blue: b / 255.0, alpha: 1)
+    }
+    
+    class func RGBAColor (r: CGFloat,
+        g: CGFloat,
+        b: CGFloat,
+        a: CGFloat) -> UIColor {
+            return UIColor (red: r / 255.0, green: g / 255.0, blue: b / 255.0, alpha: a)
+    }
+}
+
+
+
+// MARK: - UIImage
+
+extension UIImage {
+    
+    func aspectResizeWithWidth (width: CGFloat) -> UIImage {
+        let aspectSize = CGSize (width: width, height: aspectHeightForWidth(width))
+        
+        UIGraphicsBeginImageContext(aspectSize)
+        self.drawInRect(CGRect(origin: CGPointZero, size: aspectSize))
+        let img = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return img
+    }
+    
+    func aspectResizeWithHeight (height: CGFloat) -> UIImage {
+        let aspectSize = CGSize (width: aspectWidthForHeight(height), height: height)
+        
+        UIGraphicsBeginImageContext(aspectSize)
+        self.drawInRect(CGRect(origin: CGPointZero, size: aspectSize))
+        let img = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return img
+    }
+    
+    
+    func aspectHeightForWidth (width: CGFloat) -> CGFloat {
+        return (width * self.size.height) / self.size.width
+    }
+    
+    func aspectWidthForHeight (height: CGFloat) -> CGFloat {
+        return (height * self.size.width) / self.size.height
     }
 }
 
@@ -504,70 +678,18 @@ func degreesToRadians (angle: CGFloat) -> CGFloat {
     return (CGFloat (M_PI) * angle) / 180.0
 }
 
+
 func normalizeValue (value: CGFloat,
     min: CGFloat,
     max: CGFloat) -> CGFloat {
-        return (max - min) / value
+    return (max - min) / value
 }
 
 
 func convertNormalizedValue (value: CGFloat,
     min: CGFloat,
     max: CGFloat) -> CGFloat {
-        return ((max - min) * value) + min
-}
-
-
-
-// MARK: - UILabel
-
-func setHeightOfLabel (label: UILabel) {
-    label.h = heightForLabel(label.text!, label.font, label.w)
-}
-
-
-func heightForLabel (text: String,
-    font: UIFont,
-    width: CGFloat) -> CGFloat {
-    let att = NSAttributedString (string: text, attributes: NSDictionary (object: font, forKey: NSFontAttributeName))
-    let rect = att.boundingRectWithSize(CGSize (width: width, height: CGFloat.max), options: NSStringDrawingOptions.UsesLineFragmentOrigin, context: nil)
-    return rect.height
-}
-
-
-func getAspectHeightForImage (image: UIImage,
-    aspectWidth: CGFloat) -> CGFloat {
-    let aspectHeight = (aspectWidth * image.size.height) / image.size.width
-    return aspectHeight
-}
-
-
-
-// MARK: - UIColor
-
-func randomColor () -> UIColor {
-    var randomRed:CGFloat = CGFloat(drand48())
-    
-    var randomGreen:CGFloat = CGFloat(drand48())
-    
-    var randomBlue:CGFloat = CGFloat(drand48())
-    
-    return UIColor(red: randomRed, green: randomGreen, blue: randomBlue, alpha: 1.0)
-}
-
-
-func RGBColor (r: CGFloat,
-    g: CGFloat,
-    b: CGFloat) -> UIColor {
-    return UIColor (red: r / 255.0, green: g / 255.0, blue: b / 255.0, alpha: 1)
-}
-
-
-func RGBAColor (r: CGFloat,
-    g: CGFloat,
-    b: CGFloat,
-    a: CGFloat) -> UIColor {
-    return UIColor (red: r / 255.0, green: g / 255.0, blue: b / 255.0, alpha: a)
+    return ((max - min) * value) + min
 }
 
 
@@ -626,7 +748,7 @@ class BlockButton: UIButton {
     }
     
     required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: aDecoder)
     }
     
     var actionBlock: ((sender: BlockButton) -> ())? {
@@ -658,7 +780,7 @@ class BlockWebView: UIWebView, UIWebViewDelegate {
     }
     
     required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: aDecoder)
     }
     
     
@@ -681,44 +803,5 @@ class BlockWebView: UIWebView, UIWebViewDelegate {
             return true
         }
     }
+    
 }
-
-
-// MARK: - NSTimer
-
-private class NSTimerActor {
-    var block: () -> ()
-    
-    init(block: () -> ()) {
-        self.block = block
-    }
-    
-    dynamic func fire() {
-        block()
-    }
-}
-
-extension NSTimer {
-    convenience init(_ intervalFromNow: NSTimeInterval, block: () -> ()) {
-        let actor = NSTimerActor(block: block)
-        self.init(timeInterval: intervalFromNow, target: actor, selector: "fire", userInfo: nil, repeats: false)
-    }
-    
-    convenience init(every interval: NSTimeInterval, block: () -> ()) {
-        let actor = NSTimerActor(block: block)
-        self.init(timeInterval: interval, target: actor, selector: "fire", userInfo: nil, repeats: true)
-    }
-    
-    class func schedule(intervalFromNow: NSTimeInterval, block: () -> ()) -> NSTimer {
-        let timer = NSTimer(intervalFromNow, block)
-        NSRunLoop.currentRunLoop().addTimer(timer, forMode: NSDefaultRunLoopMode)
-        return timer
-    }
-    
-    class func schedule(every interval: NSTimeInterval, block: () -> ()) -> NSTimer {
-        let timer = NSTimer(every: interval, block)
-        NSRunLoop.currentRunLoop().addTimer(timer, forMode: NSDefaultRunLoopMode)
-        return timer
-    }
-}
-
