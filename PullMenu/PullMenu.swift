@@ -30,7 +30,10 @@ extension UIScrollView {
 }
 
 
+
 class PullMenuLabel: UILabel {
+    
+    var animate: ((progress: CGFloat)->())?
     
     var selected: Bool = false {
         didSet {
@@ -40,21 +43,13 @@ class PullMenuLabel: UILabel {
         }
     }
     
-    var animation: ((CGFloat)->())?
-    
     var progress: CGFloat = 0 {
         didSet {
-            animation?(progress)
-//            progressAnimation(progress)
+            animate? (progress: progress)
         }
     }
-    
-    func progressAnimation (progress: CGFloat) {
-        let s = convertNormalizedValue(progress, 0.1, 1.2)
-        self.alpha = s
-//        self.setScale(s, y: s)
-    }
 }
+
 
 
 struct PullMenuAppearance {
@@ -89,6 +84,8 @@ struct PullMenuAppearance {
         self.selectedTextAlignment = .Center
     }
 }
+
+
 
 class PullMenu: UIScrollView, UIScrollViewDelegate {
 
@@ -136,30 +133,31 @@ class PullMenu: UIScrollView, UIScrollViewDelegate {
     
     init (frame: CGRect, items: [String]) {
         super.init(frame: frame)
-        
-        appeareance = PullMenuAppearance (font: UIFont.systemFontOfSize(15), textColor: UIColor.blackColor())
-        
-        for item in items {
-            addItem(item)
-        }
+        defaultInit(items)
     }
 
-    init (frame: CGRect, items: [String], action: (selectedIndex: Int)->Void) {
+    init (frame: CGRect, items: [String],
+        action: (selectedIndex: Int)->Void) {
         super.init(frame: frame)
+        defaultInit(items)
         
-        appeareance = PullMenuAppearance (font: UIFont.systemFontOfSize(15), textColor: UIColor.blackColor())
         itemSelectedAction = action
-        
-        for item in items {
-            addItem(item)
-        }
     }
     
     required init(coder aDecoder: NSCoder) {
-        appeareance = PullMenuAppearance (font: UIFont.systemFontOfSize(15), textColor: UIColor.blackColor())
         super.init(coder: aDecoder)
+        defaultInit(nil)
     }
     
+    func defaultInit (items: [String]?) {
+        appeareance = PullMenuAppearance (font: UIFont.systemFontOfSize(15), textColor: UIColor.blackColor())
+        scrollEnabled = false
+        showsHorizontalScrollIndicator = false
+        showsVerticalScrollIndicator = false
+        for item in items! {
+            addItem(item)
+        }
+    }
     
     
     // MARK: Add
@@ -233,6 +231,7 @@ class PullMenu: UIScrollView, UIScrollViewDelegate {
         
         contentSize = CGSize (width: currentX, height: h)
     }
+    
     
     
     // MARK: Pulling
