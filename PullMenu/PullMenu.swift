@@ -44,8 +44,8 @@ class PullMenuLabel: UILabel {
     
     var progress: CGFloat = 0 {
         didSet {
-//            animation?(progress)
-            progressAnimation(progress)
+            animation?(progress)
+//            progressAnimation(progress)
         }
     }
     
@@ -90,7 +90,7 @@ struct PullMenuAppearance {
     }
 }
 
-class PullMenu: UIView, UIScrollViewDelegate {
+class PullMenu: UIScrollView, UIScrollViewDelegate {
 
     
     // MARK: Properties
@@ -221,14 +221,17 @@ class PullMenu: UIView, UIScrollViewDelegate {
             totalW += item.w
         }
         
-        let optimizedPad = (ScreenWidth - totalW) / CGFloat (items.count + 1)
-        var currentX: CGFloat = optimizedPad
+        let optimizedPad: CGFloat = 50//(ScreenWidth - totalW) / CGFloat (items.count + 1)
+        var currentX: CGFloat = 0
         
-        
+        var i = 0
         for item in items {
+            currentX += i++ == 0 ? (w-item.w)/2 : 0
             item.x = currentX
             currentX += item.w + optimizedPad
         }
+        
+        contentSize = CGSize (width: currentX, height: h)
     }
     
     
@@ -241,10 +244,10 @@ class PullMenu: UIView, UIScrollViewDelegate {
         
         if offset < 0 {
             
-            moveToCenter(offset)
-            
             let count = items.count
             let currentIndex = Int(-offset/pullForEachItem)
+            
+            moveToCenter(offset)
             
             if currentIndex >= items.count {
                 return
@@ -263,6 +266,7 @@ class PullMenu: UIView, UIScrollViewDelegate {
                     if !item.selected {
                         item.selected = true
                         updateAppeareance(item)
+                        moveItems(item)
                     }
                     
                 } else {
@@ -281,6 +285,14 @@ class PullMenu: UIView, UIScrollViewDelegate {
     
     func moveToCenter (offset: CGFloat) {
         center.y = scrollView.contentInset.top + -offset/2 + pullStartOffset/2
+    }
+    
+    func moveItems (currentItem: PullMenuLabel) {
+        let offsetX = currentItem.x - (w-currentItem.w)/2
+        
+        if contentOffset.x != offsetX {
+            setContentOffset(CGPoint (x: offsetX, y: contentOffset.y), animated: true)
+        }
     }
     
     
