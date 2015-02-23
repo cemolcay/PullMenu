@@ -236,7 +236,7 @@ class PullMenu: UIScrollView, UIScrollViewDelegate {
     
     // MARK: Pulling
     
-    func pullMenu () {
+    func pulllMenu () {
         let offsetY = scrollView.contentOffset.y
         let insetTop = scrollView.contentInset.top
         var offset = offsetY + insetTop + pullStartOffset
@@ -299,12 +299,12 @@ class PullMenu: UIScrollView, UIScrollViewDelegate {
     // MARK: UIScrollViewDelegate
     
     func scrollViewDidScroll(scrollView: UIScrollView) {
-        pullMenu()
+        pulllMenu()
     }
     
     func scrollViewDidEndDragging(scrollView: UIScrollView,
         willDecelerate decelerate: Bool) {
-        pullMenu()
+        pulllMenu()
     }
 
 }

@@ -37,7 +37,7 @@ class ViewController: UIViewController {
     func addItems () {
         var contentH: CGFloat = 10
         for i in 0...20 {
-            let lbl = UILabel (x: 10, y: contentH, w: ScreenWidth-20, h: 100)
+            let lbl = UILabel (x: 10, y: contentH, w: UIScreen.ScreenWidth-20, h: 100)
             lbl.backgroundColor = UIColor.randomColor()
             lbl.text = "item \(i)"
             lbl.textAlignment = .Center
